@@ -1,15 +1,19 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const cors = require('cors');
-const db = require('./database/database');
+const db = require('./database/database'); // Adjust path if needed
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.source || 5000;
 
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
-// --- REST API: GET all events ---
+// Test route
+app.get('/', (req, res) => {
+    res.send("Backend server is running successfully!");
+});
+
+// Get all events
 app.get('/api/events', (req, res) => {
     const query = `SELECT * FROM events`;
     db.all(query, [], (err, rows) => {
@@ -24,12 +28,12 @@ app.get('/api/events', (req, res) => {
     });
 });
 
-// --- REST API: POST a new event ---
+// Create an event
 app.post('/api/events', (req, res) => {
     const { title, description, date, time, location, category, capacity } = req.body;
     const query = `INSERT INTO events (title, description, date, time, location, category, capacity) VALUES (?, ?, ?, ?, ?, ?, ?)`;
     const params = [title, description, date, time, location, category, capacity];
-    
+
     db.run(query, params, function (err) {
         if (err) {
             res.status(400).json({ error: err.message });
@@ -37,30 +41,11 @@ app.post('/api/events', (req, res) => {
         }
         res.json({
             message: "success",
-            id: this.lastID
+            data: { id: this.lastID, ...req.body }
         });
     });
 });
 
-// --- REST API: Register for an event ---
-app.post('/api/register', (req, res) => {
-    const { user_id, event_id } = req.body;
-    const registration_date = new Date().toISOString();
-    const query = `INSERT INTO registrations (user_id, event_id, registration_date) VALUES (?, ?, ?)`;
-    
-    db.run(query, [user_id, event_id, registration_date], function (err) {
-        if (err) {
-            res.status(400).json({ error: err.message });
-            return;
-        }
-        res.json({
-            message: "Successfully registered for event",
-            registration_id: this.lastID
-        });
-    });
-});
-
-// Start Server
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+app.listen(5000, () => {
+    console.log("Server is running on port 5000");
 });
